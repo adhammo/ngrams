@@ -1,7 +1,7 @@
 import string
 import numpy as np
 
-debug_mode = True
+debug_mode = False
 
 
 def get_sentences(text):
@@ -103,12 +103,32 @@ if __name__ == "__main__":
         learn_text = ""
         with open("ngrams/sherlock.txt", "r", encoding="utf-8") as f:
             learn_text += f.read() + "\n"
-        with open("ngrams/venice.txt", "r", encoding="utf-8") as f:
-            learn_text += f.read() + "\n"
-        ngrams = get_ngrams(learn_text)
+        ngrams = get_ngrams(learn_text[:len(learn_text) // 2])
         return ngrams
 
+    @st.cache_resource
+    def verify_ngrams(ngrams):
+        verify_text = ""
+        with open("ngrams/sherlock.txt", "r", encoding="utf-8") as f:
+            verify_text += f.read() + "\n"
+        accuarcy = 0
+        total = 0
+        count = 0
+        sentences = get_sentences(verify_text[len(verify_text) // 2:])
+        for sentence in sentences:
+            count += 1
+            words = sentence.split()
+            for i in range(len(words)):
+                next_word = get_next_word(ngrams, " ".join(words[:i]))
+                if next_word == words[i]:
+                    accuarcy += 1
+                total += 1
+            print(f"{count}/{len(sentences)}", accuarcy / total * 100)
+        return accuarcy / total * 100
+
     ngrams = load_ngrams()
+    accuarcy = verify_ngrams(ngrams)
+    print(accuarcy)
 
     st.title("N-gram Next Word Predictor")
     user_input = st.text_input("Enter a sentence:", "")
